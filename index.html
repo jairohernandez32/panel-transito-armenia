@@ -1,0 +1,949 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Panel de Zonas - Tránsito (Acceso restringido)</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    :root {
+      --bg-main: #f4f6fb;
+      --bg-card: #ffffff;
+      --primary: #2f5597;
+      --primary-soft: #d9e1f2;
+      --accent: #00b050;
+      --text-main: #333333;
+      --border-soft: #d0d0d0;
+      --danger: #c00000;
+    }
+
+    * {
+      box-sizing: border-box;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+        sans-serif;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      background: var(--bg-main);
+      color: var(--text-main);
+    }
+
+    .app-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 16px;
+    }
+
+    header {
+      background: var(--primary);
+      color: #ffffff;
+      border-radius: 16px;
+      padding: 14px 18px;
+      margin-bottom: 16px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.12);
+    }
+
+    .header-inner {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .header-logo img {
+      width: 60px;
+      height: 60px;
+      object-fit: contain;
+      border-radius: 50%;
+      background: #ffffff;
+      padding: 4px;
+    }
+
+    .header-text h1 {
+      margin: 0 0 2px;
+      font-size: 1.2rem;
+      font-weight: 600;
+    }
+
+    .header-text p {
+      margin: 0;
+      font-size: 0.85rem;
+      opacity: 0.95;
+    }
+
+    .top-info {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-items: center;
+      margin-top: 8px;
+      font-size: 0.78rem;
+    }
+
+    .fecha-box {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.78rem;
+    }
+
+    .fecha-box label {
+      font-weight: 500;
+    }
+
+    .fecha-box input[type="date"] {
+      border-radius: 6px;
+      border: 1px solid rgba(255, 255, 255, 0.7);
+      padding: 3px 8px;
+      font-size: 0.78rem;
+      background: rgba(255, 255, 255, 0.2);
+      color: #ffffff;
+      outline: none;
+    }
+
+    .fecha-box input[type="date"]::-webkit-calendar-picker-indicator {
+      filter: invert(1);
+      cursor: pointer;
+    }
+
+    .card {
+      background: var(--bg-card);
+      border-radius: 14px;
+      padding: 16px;
+      margin-bottom: 16px;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+      border: 1px solid rgba(0, 0, 0, 0.03);
+    }
+
+    .card h2 {
+      font-size: 1.05rem;
+      margin: 0 0 8px;
+      color: var(--primary);
+    }
+
+    .card p {
+      font-size: 0.85rem;
+      margin: 2px 0;
+    }
+
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    button {
+      border-radius: 999px;
+      border: none;
+      padding: 8px 14px;
+      font-size: 0.85rem;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: transform 0.05s ease, box-shadow 0.1s ease, opacity 0.1s ease;
+      white-space: nowrap;
+    }
+
+    button:active {
+      transform: scale(0.97);
+      box-shadow: none;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: #ffffff;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+    }
+
+    .btn-secondary {
+      background: var(--primary-soft);
+      color: var(--primary);
+    }
+
+    .btn-danger {
+      background: var(--danger);
+      color: #ffffff;
+    }
+
+    .btn-soft {
+      background: #f1f3f7;
+      color: #444444;
+    }
+
+    .zones-table-wrapper {
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.82rem;
+      margin-top: 6px;
+    }
+
+    thead {
+      position: sticky;
+      top: 0;
+      background: var(--primary-soft);
+      z-index: 1;
+    }
+
+    th,
+    td {
+      border: 1px solid var(--border-soft);
+      padding: 6px 8px;
+      vertical-align: top;
+    }
+
+    th {
+      background: var(--primary-soft);
+      text-align: left;
+      font-weight: 600;
+      font-size: 0.78rem;
+    }
+
+    tbody tr:nth-child(even) {
+      background: #fafbff;
+    }
+
+    tbody tr:nth-child(odd) {
+      background: #ffffff;
+    }
+
+    .zona-label {
+      font-weight: 600;
+      color: var(--primary);
+    }
+
+    .descripcion {
+      font-size: 0.78rem;
+    }
+
+    input[type="text"],
+    textarea {
+      width: 100%;
+      border-radius: 8px;
+      border: 1px solid var(--border-soft);
+      padding: 4px 6px;
+      font-size: 0.8rem;
+      outline: none;
+      background: #ffffff;
+    }
+
+    input[type="text"]:focus,
+    textarea:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 1px rgba(47, 85, 151, 0.3);
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 40px;
+      max-height: 100px;
+    }
+
+    .small-text {
+      font-size: 0.75rem;
+      opacity: 0.8;
+    }
+
+    .footer-note {
+      text-align: center;
+      font-size: 0.75rem;
+      opacity: 0.7;
+      margin-top: 10px;
+      margin-bottom: 8px;
+    }
+
+    @media (max-width: 768px) {
+      .header-inner {
+        flex-direction: row;
+        align-items: center;
+      }
+      header {
+        padding: 12px;
+      }
+      .header-text h1 {
+        font-size: 1rem;
+      }
+      .card {
+        padding: 12px;
+      }
+      .fecha-box {
+        width: 100%;
+      }
+    }
+
+    /* LOGIN OVERLAY */
+    .login-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.25);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+    }
+
+    .login-card {
+      background: #ffffff;
+      border-radius: 16px;
+      padding: 20px 18px;
+      width: 100%;
+      max-width: 360px;
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.18);
+      border: 1px solid #e0e0e0;
+      text-align: center;
+    }
+
+    .login-card h1 {
+      margin: 0 0 8px;
+      font-size: 1.3rem;
+      color: var(--primary);
+    }
+
+    .login-card p {
+      margin: 4px 0 10px;
+      font-size: 0.85rem;
+      color: #555;
+    }
+
+    .login-input {
+      width: 100%;
+      padding: 7px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--border-soft);
+      font-size: 0.9rem;
+      outline: none;
+      text-align: center;
+    }
+
+    .login-input:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 1px rgba(47, 85, 151, 0.3);
+    }
+
+    .login-btn {
+      width: 100%;
+      margin-top: 12px;
+      justify-content: center;
+    }
+
+    .login-error {
+      font-size: 0.8rem;
+      color: var(--danger);
+      margin-top: 6px;
+      min-height: 18px;
+    }
+
+    .login-hint {
+      font-size: 0.7rem;
+      margin-top: 6px;
+      opacity: 0.6;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    .no-print {
+      /* Elementos que no salen en PDF */
+    }
+
+    @media print {
+      .login-overlay {
+        display: none !important;
+      }
+      .no-print {
+        display: none !important;
+      }
+      button {
+        display: none !important;
+      }
+      body {
+        background: #ffffff;
+      }
+      .app-container {
+        max-width: 100%;
+        margin: 0;
+        padding: 6px 10px;
+      }
+      .footer-note {
+        display: none !important;
+      }
+      header {
+        box-shadow: none;
+        margin-bottom: 10px;
+      }
+      .fecha-box input[type="date"] {
+        background: transparent;
+        border-color: transparent;
+        color: #ffffff;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- LOGIN -->
+  <div class="login-overlay" id="loginOverlay">
+    <div class="login-card">
+      <h1>Acceso al panel</h1>
+      <p>Uso interno para distribución de zonas de tránsito.</p>
+
+      <input
+        type="password"
+        id="passwordInput"
+        class="login-input"
+        placeholder="Ingrese la contraseña"
+        autocomplete="off"
+      />
+
+      <button class="btn-primary login-btn" id="btnEntrar">
+        Entrar
+      </button>
+
+      <div class="login-error" id="loginError"></div>
+      <div class="login-hint">
+        Contraseña actual: <strong>transito123</strong>
+      </div>
+    </div>
+  </div>
+
+  <!-- PANEL PRINCIPAL -->
+  <div class="app-container hidden" id="appMain">
+    <!-- ENCABEZADO -->
+    <header>
+      <div class="header-inner">
+        <div class="header-logo">
+          <img src="ministerio-de-transporte-colombia-logo-png_seeklogo-93072.png"
+               alt="Logo Ministerio de Transporte" />
+        </div>
+        <div class="header-text">
+          <h1>República de Colombia – Ministerio de Transporte</h1>
+          <p>Asignación operativa de zonas de tránsito</p>
+          <div class="top-info">
+            <div class="fecha-box">
+              <label for="fechaProgramacion">Fecha de programación:</label>
+              <input type="date" id="fechaProgramacion" />
+            </div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- CONTROLES -->
+    <section class="card no-print">
+      <h2>Controles rápidos</h2>
+      <p class="small-text">
+        Esta página guarda la información localmente en este dispositivo (navegador).
+      </p>
+
+      <div class="controls">
+        <button class="btn-primary" id="btnGuardar">
+          💾 Guardar asignaciones
+        </button>
+        <button class="btn-secondary" id="btnCargar">
+          📂 Cargar última versión
+        </button>
+        <button class="btn-danger" id="btnLimpiar">
+          🧹 Limpiar todo
+        </button>
+        <button class="btn-soft" onclick="window.print()">
+          🖨️ Imprimir / Guardar en PDF
+        </button>
+      </div>
+    </section>
+
+    <!-- TABLA EDITABLE (NO SALE EN PDF) -->
+    <section class="card no-print">
+      <h2>Zonas y asignaciones</h2>
+      <p class="small-text">
+        En cada fila se asigna el ATT-CPS responsable y las observaciones de la zona.
+      </p>
+
+      <div class="zones-table-wrapper">
+        <table id="tablaZonas">
+          <thead>
+            <tr>
+              <th style="width: 70px;">Zona</th>
+              <th style="width: 260px;">Lugar</th>
+              <th style="width: 150px;">ATT-CPS</th>
+              <th>Observaciones / Novedades</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- Zona 1 -->
+            <tr data-zona="1">
+              <td class="zona-label">Zona 1</td>
+              <td class="descripcion">
+                Calle 19 carrera 13 a 17 · 
+              </td>
+              <td>
+                <input type="text" class="input-att" placeholder="ATT-CPS asignado" />
+              </td>
+              <td>
+                <textarea class="input-observaciones" placeholder="Observaciones de la zona"></textarea>
+              </td>
+            </tr>
+
+            <!-- Zona 2 -->
+            <tr data-zona="2">
+              <td class="zona-label">Zona 2</td>
+              <td class="descripcion">
+                Cra 13 · Calle 19 a 13 · 
+              </td>
+              <td>
+                <input type="text" class="input-att" placeholder="ATT-CPS asignado" />
+              </td>
+              <td>
+                <textarea class="input-observaciones" placeholder="Observaciones de la zona"></textarea>
+              </td>
+            </tr>
+
+            <!-- Zona 3 -->
+            <tr data-zona="3">
+              <td class="zona-label">Zona 3</td>
+              <td class="descripcion">
+                Calle 21 carrera 13 a 17 · 
+              </td>
+              <td>
+                <input type="text" class="input-att" placeholder="ATT-CPS asignado" />
+              </td>
+              <td>
+                <textarea class="input-observaciones" placeholder="Observaciones de la zona"></textarea>
+              </td>
+            </tr>
+
+            <!-- Zona 4 -->
+            <tr data-zona="4">
+              <td class="zona-label">Zona 4</td>
+              <td class="descripcion">
+                Cra 15 · Calle 21 a 13 · ATT CPS 202-226
+              </td>
+              <td>
+                <input type="text" class="input-att" placeholder="ATT-CPS asignado" />
+              </td>
+              <td>
+                <textarea class="input-observaciones" placeholder="Observaciones de la zona"></textarea>
+              </td>
+            </tr>
+
+            <!-- Zona 5 -->
+            <tr data-zona="5">
+              <td class="zona-label">Zona 5</td>
+              <td class="descripcion">
+                Cra 16 · Calle 21 a 13 · 
+              </td>
+              <td>
+                <input type="text" class="input-att" placeholder="ATT-CPS asignado" />
+              </td>
+              <td>
+                <textarea class="input-observaciones" placeholder="Observaciones de la zona"></textarea>
+              </td>
+            </tr>
+
+            <!-- Zona 6 -->
+            <tr data-zona="6">
+              <td class="zona-label">Zona 6</td>
+              <td class="descripcion">
+                Cra 18 · Calle 21 a 17 · 
+                En hora pico (11:30 a 13:00) trasladar a carrera 18 calle 22 (213)
+                y carrera 18 calle 24 (234) para Plan Ciudad.
+              </td>
+              <td>
+                <input type="text" class="input-att" placeholder="ATT-CPS asignado" />
+              </td>
+              <td>
+                <textarea class="input-observaciones"
+                  placeholder="Ej: refuerzo en hora pico, cambios de cruce, etc."></textarea>
+              </td>
+            </tr>
+
+            <!-- Zona 7 -->
+            <tr data-zona="7">
+              <td class="zona-label">Zona 7</td>
+              <td class="descripcion">
+                Cra 19 · Calle 21 a 17 · 
+                Verificar lavado en vía pública en calle 22 entre cra 19 y 20.
+                En hora pico (11:30 a 13:00) despejar cra 19 de calle 19 a 24 (Plan Ciudad).
+              </td>
+              <td>
+                <input type="text" class="input-att" placeholder="ATT-CPS asignado" />
+              </td>
+              <td>
+                <textarea class="input-observaciones"></textarea>
+              </td>
+            </tr>
+
+            <!-- Zona 8 -->
+            <tr data-zona="8">
+              <td class="zona-label">Zona 8</td>
+              <td class="descripcion">
+                Sector CAM · Calle 15 entre carreras 16 a 18 · 
+              </td>
+              <td>
+                <input type="text" class="input-att" placeholder="ATT-CPS asignado" />
+              </td>
+              <td>
+                <textarea class="input-observaciones"></textarea>
+              </td>
+            </tr>
+
+            <!-- Zona 9 -->
+            <tr data-zona="9">
+              <td class="zona-label">Zona 9</td>
+              <td class="descripcion">
+                Unicentro, ambos sentidos, hasta calle 9 cra 14 y 15 · 
+                Pendiente semáforos de calle 10, 9 y peatonales Av. Bolívar sentido sur-norte.
+              </td>
+              <td>
+                <input type="text" class="input-att" placeholder="ATT-CPS asignado" />
+              </td>
+              <td>
+                <textarea class="input-observaciones"></textarea>
+              </td>
+            </tr>
+
+            <!-- Zona 10 -->
+            <tr data-zona="10">
+              <td class="zona-label">Zona 10</td>
+              <td class="descripcion">
+                Fundadores, notaría 5ª, clínicas, Luxor, Baleares, Cruz Verde.
+                Pendiente estacionamiento sector iglesia y salas de velación.
+                Control carrera 14 sentido norte-sur en horas pico · 
+              </td>
+              <td>
+                <input type="text" class="input-att" placeholder="ATT-CPS asignado" />
+              </td>
+              <td>
+                <textarea class="input-observaciones"></textarea>
+              </td>
+            </tr>
+
+            <!-- Zona 11 -->
+            <tr data-zona="11">
+              <td class="zona-label">Zona 11</td>
+              <td class="descripcion">
+                Clínica San Rafael (contingencia cierre carrera 19 calle 2N).
+                Control calle 5N, carrera 16 a 19 · 
+              </td>
+              <td>
+                <input type="text" class="input-att" placeholder="ATT-CPS asignado" />
+              </td>
+              <td>
+                <textarea class="input-observaciones"></textarea>
+              </td>
+            </tr>
+
+            <!-- Zona 12 -->
+            <tr data-zona="12">
+              <td class="zona-label">Zona 12</td>
+              <td class="descripcion">
+                Calle 17N, carreras 15 y 14, Renault, Portal del Quindío,
+                calle 22N, Niteroi · 
+              </td>
+              <td>
+                <input type="text" class="input-att" placeholder="ATT-CPS asignado" />
+              </td>
+              <td>
+                <textarea class="input-observaciones"></textarea>
+              </td>
+            </tr>
+
+            <!-- Zona 13 (NUEVA) -->
+            <tr data-zona="13">
+              <td class="zona-label">Zona 13</td>
+              <td class="descripcion">
+                Calle 22 de la carrera 13 a la carrera 18
+              </td>
+              <td>
+                <input type="text" class="input-att" placeholder="ATT-CPS asignado" />
+              </td>
+              <td>
+                <textarea class="input-observaciones" placeholder="Observaciones de la zona"></textarea>
+              </td>
+            </tr>
+
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- RESUMEN (ESTO SALE EN PDF) -->
+    <section class="card" id="resumenCard">
+      <h2>Asignación de ATT-CPS por lugar</h2>
+      <p class="small-text">
+        Resumen con zona, lugar, ATT-CPS asignado y observaciones. Esta tabla es la que se ve en el PDF.
+      </p>
+
+      <div class="zones-table-wrapper">
+        <table id="tablaResumen">
+          <thead>
+            <tr>
+              <th style="width: 80px;">Zona</th>
+              <th>Lugar</th>
+              <th style="width: 170px;">ATT-CPS</th>
+              <th>Observaciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- Se llena automáticamente -->
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- NOVEDADES (TAMBIÉN SALE EN PDF) -->
+    <section class="card" id="novedadesCard">
+      <h2>Novedades generales de la jornada</h2>
+      <p class="small-text">
+        Registro de incapacidades, suspensiones, compensatorios y capacitaciones.
+      </p>
+
+      <table style="margin-top: 8px;">
+        <tr>
+          <th style="width: 180px;">Incapacitados</th>
+          <td><textarea id="incapacitados" placeholder="Nombres / horas / observaciones"></textarea></td>
+        </tr>
+        <tr>
+          <th>Suspensión de contrato</th>
+          <td><textarea id="suspension" placeholder="Detalles de suspensión, si aplica"></textarea></td>
+        </tr>
+        <tr>
+          <th>Compensatorio</th>
+          <td><textarea id="compensatorio" placeholder="Quién toma compensatorio y en qué horario"></textarea></td>
+        </tr>
+        <tr>
+          <th>Capacitación</th>
+          <td><textarea id="capacitacion" placeholder="Lugar, tema y asistentes"></textarea></td>
+        </tr>
+      </table>
+    </section>
+
+    <p class="footer-note no-print">
+      Herramienta local de apoyo para programación interna de tránsito.
+    </p>
+  </div>
+
+  <script>
+    // ===== LOGIN =====
+    const CLAVE_CORRECTA = "transito123";
+
+    const loginOverlay = document.getElementById("loginOverlay");
+    const appMain = document.getElementById("appMain");
+    const passwordInput = document.getElementById("passwordInput");
+    const loginError = document.getElementById("loginError");
+    const btnEntrar = document.getElementById("btnEntrar");
+
+    function intentarAcceso() {
+      const valor = passwordInput.value.trim();
+      if (valor === CLAVE_CORRECTA) {
+        loginOverlay.classList.add("hidden");
+        appMain.classList.remove("hidden");
+        loginError.textContent = "";
+      } else {
+        loginError.textContent = "Contraseña incorrecta.";
+      }
+    }
+
+    btnEntrar.addEventListener("click", intentarAcceso);
+    passwordInput.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") intentarAcceso();
+    });
+
+    const STORAGE_KEY = "panel_transito_zonas";
+
+    function getDataFromUI() {
+      const filas = document.querySelectorAll("#tablaZonas tbody tr");
+      const zonas = [];
+      filas.forEach((fila) => {
+        const zonaId = fila.getAttribute("data-zona");
+        const att = fila.querySelector(".input-att").value;
+        const observaciones = fila.querySelector(".input-observaciones").value;
+        zonas.push({ zonaId, att, observaciones });
+      });
+
+      const incapacitados = document.getElementById("incapacitados")?.value || "";
+      const suspension = document.getElementById("suspension")?.value || "";
+      const compensatorio = document.getElementById("compensatorio")?.value || "";
+      const capacitacion = document.getElementById("capacitacion")?.value || "";
+      const fechaProgramacion = document.getElementById("fechaProgramacion")?.value || "";
+
+      return {
+        zonas,
+        novedades: { incapacitados, suspension, compensatorio, capacitacion },
+        fechaProgramacion,
+        timestamp: new Date().toISOString(),
+      };
+    }
+
+    function setDataToUI(data) {
+      if (!data) return;
+
+      const filas = document.querySelectorAll("#tablaZonas tbody tr");
+      if (data.zonas) {
+        filas.forEach((fila) => {
+          const zonaId = fila.getAttribute("data-zona");
+          const registro = data.zonas.find((z) => z.zonaId === zonaId);
+          if (registro) {
+            fila.querySelector(".input-att").value = registro.att || registro.contratista || "";
+            fila.querySelector(".input-observaciones").value =
+              registro.observaciones || "";
+          }
+        });
+      }
+
+      if (data.novedades) {
+        if (document.getElementById("incapacitados"))
+          document.getElementById("incapacitados").value =
+            data.novedades.incapacitados || "";
+        if (document.getElementById("suspension"))
+          document.getElementById("suspension").value =
+            data.novedades.suspension || "";
+        if (document.getElementById("compensatorio"))
+          document.getElementById("compensatorio").value =
+            data.novedades.compensatorio || "";
+        if (document.getElementById("capacitacion"))
+          document.getElementById("capacitacion").value =
+            data.novedades.capacitacion || "";
+      }
+
+      if (document.getElementById("fechaProgramacion")) {
+        if (data.fechaProgramacion) {
+          document.getElementById("fechaProgramacion").value =
+            data.fechaProgramacion;
+        } else {
+          const hoy = new Date();
+          const yyyy = hoy.getFullYear();
+          const mm = String(hoy.getMonth() + 1).padStart(2, "0");
+          const dd = String(hoy.getDate()).padStart(2, "0");
+          document.getElementById("fechaProgramacion").value = `${yyyy}-${mm}-${dd}`;
+        }
+      }
+
+      actualizarResumen();
+    }
+
+    function actualizarResumen() {
+      const tbody = document.querySelector("#tablaResumen tbody");
+      if (!tbody) return;
+      tbody.innerHTML = "";
+
+      const filas = document.querySelectorAll("#tablaZonas tbody tr");
+      const registros = [];
+
+      filas.forEach((fila) => {
+        const zona = fila.querySelector(".zona-label")?.textContent.trim() || "";
+        const lugar = fila.querySelector(".descripcion")?.innerText.replace(/\s+/g, " ").trim() || "";
+        const att = fila.querySelector(".input-att")?.value.trim() || "";
+        const obs = fila.querySelector(".input-observaciones")?.value.trim() || "";
+
+        registros.push({
+          zona,
+          lugar,
+          att: att || "Sin asignar",
+          obs,
+        });
+      });
+
+      // Ordenar por número de zona
+      registros.sort((a, b) => {
+        const nzA = parseInt(a.zona.replace(/\D/g, ""), 10);
+        const nzB = parseInt(b.zona.replace(/\D/g, ""), 10);
+        if (!isNaN(nzA) && !isNaN(nzB)) return nzA - nzB;
+        return a.zona.localeCompare(b.zona);
+      });
+
+      registros.forEach((r) => {
+        const tr = document.createElement("tr");
+
+        function addCell(text) {
+          const td = document.createElement("td");
+          td.textContent = text || "-";
+          tr.appendChild(td);
+        }
+
+        addCell(r.zona);
+        addCell(r.lugar);
+        addCell(r.att);
+        addCell(r.obs);
+
+        tbody.appendChild(tr);
+      });
+    }
+
+    function guardarDatos() {
+      const data = getDataFromUI();
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+        actualizarResumen();
+        alert("Asignaciones guardadas en este equipo.");
+      } catch (e) {
+        alert("No se pudo guardar la información (revisar espacio de almacenamiento).");
+      }
+    }
+
+    function cargarDatos() {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) {
+        alert("No hay datos guardados previamente.");
+        return;
+      }
+      try {
+        const data = JSON.parse(raw);
+        setDataToUI(data);
+        alert("Asignaciones cargadas correctamente.");
+      } catch (e) {
+        alert("Error al leer los datos guardados.");
+      }
+    }
+
+    function limpiarDatos() {
+      const confirmar = confirm(
+        "Se borrará toda la información de la página y lo guardado en este navegador. ¿Continuar?"
+      );
+      if (!confirmar) return;
+
+      localStorage.removeItem(STORAGE_KEY);
+
+      document
+        .querySelectorAll(".input-att, .input-observaciones")
+        .forEach((el) => (el.value = ""));
+
+      if (document.getElementById("incapacitados"))
+        document.getElementById("incapacitados").value = "";
+      if (document.getElementById("suspension"))
+        document.getElementById("suspension").value = "";
+      if (document.getElementById("compensatorio"))
+        document.getElementById("compensatorio").value = "";
+      if (document.getElementById("capacitacion"))
+        document.getElementById("capacitacion").value = "";
+      if (document.getElementById("fechaProgramacion"))
+        document.getElementById("fechaProgramacion").value = "";
+
+      actualizarResumen();
+    }
+
+    document.getElementById("btnGuardar").addEventListener("click", guardarDatos);
+    document.getElementById("btnCargar").addEventListener("click", cargarDatos);
+    document.getElementById("btnLimpiar").addEventListener("click", limpiarDatos);
+
+    (function autoLoad() {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) {
+        setDataToUI({});
+        return;
+      }
+      try {
+        const data = JSON.parse(raw);
+        setDataToUI(data);
+      } catch (e) {
+        setDataToUI({});
+      }
+    })();
+  </script>
+</body>
+</html>
